@@ -1,4 +1,4 @@
-##############################################################
+########################################################
 ## Generacion de las tablas de insumo para el proyecto
 ## Modelo de atribución: ventas de Quiosco producidas por Paid Media 
 ## (CINV-MAPM-MX-D-0002)
