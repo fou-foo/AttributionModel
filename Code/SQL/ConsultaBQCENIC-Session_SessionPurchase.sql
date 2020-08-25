@@ -1,22 +1,19 @@
-########################################################
-## Generacion de las tablas de insumo para el proyecto
-## Modelo de atribución: ventas de Quiosco producidas por Paid Media 
-## (CINV-MAPM-MX-D-0002)
-## CENIC:Script tipeado en su gran mayoria con la valiosa ayuda de jesus.angulo@coppel.com y 
-## 
-##############################################################
+-- Generacion de las 3 tablas de insumo para el proyecto 
+-- Modelo de atribución: ventas de Quiosco producidas por Paid Media  (CINV-MAPM-MX-D-0002)
+-- ecommerce: jesus.angulo@coppel.com, ivan.garcia@coppel.com; CENIC: antonio.garciar@coppel.com, fernando.villa@coppel.com
 
-## Sessions
+/* 
+Se obtienen todas las sesiones del sitio web de coppel.com 
+*/ 
 
 CREATE OR REPLACE TABLE ga360-250517.cenic.SessionsWEB as (
-## Sessions
 WITH rawdata AS (
 SELECT DISTINCT
     #PARSE_DATE('%Y%m%d',date) AS date,
     #geoNetwork.country,
     CONCAT(fullVisitorId,'.',CAST(visitStartTime AS STRING)) AS sessionId,
-    fullvisitorId,
-    UPPER(trafficSource.medium) AS medium,
+    fullvisitorId, -- identificador de Google Analytics 
+    UPPER(trafficSource.medium) AS medium, -- medio asignado por GA
     UPPER(trafficSource.source) AS source,
     trafficSource.campaign,
     device.operatingSystem,
@@ -26,10 +23,13 @@ SELECT DISTINCT
     geoNetwork.city,
     visitStartTime,
 FROM `ga360-250517.53461765.ga_sessions_*`, UNNEST(hits) AS hits
-WHERE _TABLE_SUFFIX = '20200720'  --AND FORMAT_DATE("%Y%m%d",DATE_SUB(CURRENT_DATE("America/Mazatlan"), INTERVAL 1 DAY))
-# AND geoNetwork.country='Mexico'
+WHERE #_TABLE_SUFFIX = '20200720'  
+ geoNetwork.country='Mexico' -- filtramos solo las sessiones de Mexico
 )
 
+/*
+Para determinar el Building Block que la gerencia de BI de ecommerce asigna a cada session se realiza el siguiene cruce (lo realizo Ivan)
+*/
 SELECT * from (
 SELECT
   sessionId, region, city, operatingSystem, browser,
@@ -46,13 +46,15 @@ SELECT
 FROM rawData
 LEFT JOIN (
     SELECT *
-        FROM `ga360-250517.cenic.buildingBlocks`) BBs
+        FROM `ga360-250517.cenic.buildingBlocks`) BBs -- esta tabla esta en un proecto de la gerencia de BI pero Jesus la copio al dataset del proyecto 'cenic'
   ON rawData.source = BBs.des_fuente AND rawData.medium = BBs.des_medio
 GROUP BY 1,2,3,4,5,6,7,8  ) as temporal1
 )
---------------------------------------------------------------------------
 
-## SessionPurchase
+/* 
+Se obtienen todas las sesiones CON VENTA del sitio web de coppel.com 
+*/ 
+
 CREATE OR REPLACE TABLE  `ga360-250517.cenic.PurchaseWEB` AS (
 WITH rawdata AS ( SELECT DISTINCT
   visitStartTime,
@@ -65,9 +67,10 @@ WITH rawdata AS ( SELECT DISTINCT
   device.deviceCategory AS dispositivo
 
 FROM `ga360-250517.53461765.ga_sessions_*`, UNNEST(hits) AS hits
-WHERE _TABLE_SUFFIX = '20200720'
+#WHERE _TABLE_SUFFIX = '20200720'
 ),
 
+/* Esta seccion es para evitar contar mas de una vez una venta debido al page de 'gracias por su compra' al finalizar la venta*/
 transacciones AS (
 SELECT DISTINCT
   sessionId,
@@ -92,7 +95,7 @@ FROM
           hits.transaction.transactionId, hits.transaction.transactionRevenue/1000000 AS transactionRevenue
         FROM `ga360-250517.53461765.ga_sessions_*`, UNNEST(hits) AS hits, UNNEST(hits.product) AS product
         WHERE
-        _TABLE_SUFFIX = '20200720' AND
+        #_TABLE_SUFFIX = '20200720' AND
         hits.transaction.transactionId IS NOT null
         ORDER BY hitNumber, sessionId, transactionId
     )
