@@ -1,3 +1,11 @@
+##############################################################
+## Generacion de las tablas de insumo para el proyecto
+## Modelo de atribución: ventas de Quiosco producidas por Paid Media 
+## (CINV-MAPM-MX-D-0002)
+## CENIC:Script tipeado en su gran mayoria con la valiosa ayuda de jesus.angulo@coppel.com y 
+## 
+##############################################################
+
 ## Sessions
 
 CREATE OR REPLACE TABLE ga360-250517.cenic.SessionsWEB as (
