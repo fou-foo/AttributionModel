@@ -22,9 +22,9 @@ SELECT DISTINCT
     device.browser,
     geoNetwork.region,
     geoNetwork.city,
-    visitStartTime,
+    hits.time,
 FROM `ga360-250517.53461765.ga_sessions_*`, UNNEST(hits) AS hits
-WHERE #_TABLE_SUFFIX = '20200720'  
+WHERE #_TABLE_SUFFIX = '20200720'  AND
  geoNetwork.country='Mexico' -- filtramos solo las sessiones de Mexico
 )
 
@@ -33,7 +33,7 @@ Para determinar el Building Block que la gerencia de BI de ecommerce asigna a ca
 */
 SELECT * from (
 SELECT
-  sessionId, region, city, operatingSystem, browser,
+  rawdata.*,
   CASE
     WHEN des_buildingBlockAgg IS NULL AND medium = 'REFERRAL' THEN 'SEO & OWNED MEDIA'
     WHEN des_buildingBlockAgg IS NULL AND medium != 'REFERRAL' THEN 'OTROS INGRESOS'
@@ -43,13 +43,14 @@ SELECT
     WHEN des_buildingBlockAgg IS NULL AND UPPER(medium) = 'REFERRAL' THEN 'REFERRAL'
     WHEN des_buildingBlockAgg IS NULL AND UPPER(medium) != 'REFERRAL' THEN 'NO IDENTIFICADOS'
     ELSE des_buildingBlock
-  END AS buildingBlock, deviceCategory,
+  END AS buildingBlock,
 FROM rawData
 LEFT JOIN (
     SELECT *
         FROM `ga360-250517.cenic.buildingBlocks`) BBs -- esta tabla esta en un proecto de la gerencia de BI pero Jesus la copio al dataset del proyecto 'cenic'
   ON rawData.source = BBs.des_fuente AND rawData.medium = BBs.des_medio
-GROUP BY 1,2,3,4,5,6,7,8  ) as temporal1
+GROUP BY 1,2,3,4,5,6,7,8, 9, 10, 11,12, 13,14 ) as temporal1
+
 )
 
 /* 
@@ -112,3 +113,20 @@ SELECT * from (
  ON A.sessionId = B.sessionId
  WHERE transactionId IS NOT null  ) AS temporal
 )
+
+
+/* Conjunto de ventas en el kiosko identificables en Mexico */
+/* Ya se consideran los usuarios que compraron en el kiosko y que tambien compraron en el sitio web  */
+CREATE OR REPLACE TABLE `ga360-250517.cenic.compras_kiosco_cool` as (
+  SELECT *
+    FROM `ga360-250517.cenic.compras_kiosco` as K
+    INNER JOIN `ga360-250517.cenic.PurchaseWEB` Web
+  on CAST( Web.transactionId as int64)  =K.sec_ordencommerce )
+
+
+/* Conjunto de sessiones en el sitio web de los clientes del kiosko identificables en Mexico */
+CREATE OR REPLACE TABLE `ga360-250517.cenic.SessionsKiosk` As (
+SELECT *  
+  FROM  `ga360-250517.cenic.SessionsWEB` 
+  WHERE fullvisitorId IN ( SELECT fullvisitorId FROM `ga360-250517.cenic.compras_kiosco_cool`) 
+  )

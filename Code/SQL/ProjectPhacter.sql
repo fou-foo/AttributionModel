@@ -1,8 +1,6 @@
-CREATE OR REPLACE TABLE `ga360-250517.cenic.compras_kiosco_cool` as (
-  SELECT *
-    FROM `ga360-250517.cenic.compras_kiosco` as K
-    INNER JOIN `ga360-250517.cenic.PurchaseWEB` Web
-  on CAST( Web.transactionId as int64)  =K.sec_ordencommerce )
+/* codigo para numeros del proyect chapter */
+-- select min( fec_fechaorden) , max(fec_fechaorden) from  `ga360-250517.cenic.compras_kiosco`   --  rango compras kiosk
+SELECT TIMESTAMP_SECONDS( min( visitStartTime )), TIMESTAMP_SECONDS (max( visitStartTime ))   FROM `ga360-250517.147163492.ga_sessions_*` -- memoria de 13 meses de GA de todas las sesiones web
+--SELECT TIMESTAMP_SECONDS( min( visitStartTime )), TIMESTAMP_SECONDS (max( visitStartTime ))   FROM `ga360-250517.53461765.ga_sessions_*` -- memoria de 13 meses de GA de todas las sesiones sessiones
 
 
-  
