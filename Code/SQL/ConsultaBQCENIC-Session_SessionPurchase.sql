@@ -9,6 +9,7 @@ Se obtienen todas las sesiones del sitio web de coppel.com
 CREATE OR REPLACE TABLE ga360-250517.cenic.SessionsWEB as (
 WITH rawdata AS (
 SELECT DISTINCT
+    visitStartTime,
     #PARSE_DATE('%Y%m%d',date) AS date,
     #geoNetwork.country,
     CONCAT(fullVisitorId,'.',CAST(visitStartTime AS STRING)) AS sessionId,
