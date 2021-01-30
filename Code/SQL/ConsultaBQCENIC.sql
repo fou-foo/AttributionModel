@@ -130,3 +130,10 @@ SELECT *
   FROM  `ga360-250517.cenic.SessionsWEB` 
   WHERE fullvisitorId IN ( SELECT fullvisitorId FROM `ga360-250517.cenic.compras_kiosco_cool`) 
   )
+
+    /* QUERY PARA VALIDAR MONTOS CONTRA EL DASHBOARD OMNICANAL */
+SELECT extract (year from fecha_inicio ) as anio, fuente, sum(gasto) as gasto 
+FROM `ga360-250517.cenic.mae_rendimientoCampanias` 
+WHERE fecha_inicio is not null 
+group by anio, fuente
+order by anio desc , fuente 
