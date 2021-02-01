@@ -1,0 +1,10 @@
+/* el canal de google efectivamente no tiene grupo de anuncio como ivan nos habia dicho , pero tampoco tiene fecha_inicio nulos */
+SELECT * 
+FROM `ga360-250517.cenic.mae_rendimientoCampanias` 
+where fuente ='google'
+
+SELECT * 
+FROM `ga360-250517.cenic.mae_rendimientoCampanias` 
+where fuente ='google' and fecha is not null
+
+
